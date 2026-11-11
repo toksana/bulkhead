@@ -1,0 +1,24 @@
+{
+  "name": "@bulkhead/protocol",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Wire contracts: Zod schemas, message envelope and codecs.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@msgpack/msgpack": "3.1.3",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@bulkhead/config": "workspace:*",
+    "@faker-js/faker": "10.6.0",
+    "vitest": "5.1.0"
+  }
+}
