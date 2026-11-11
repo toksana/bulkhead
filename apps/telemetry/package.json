@@ -1,0 +1,24 @@
+{
+  "name": "@bulkhead/telemetry",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rsbuild dev",
+    "build": "rsbuild build",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@bulkhead/config": "workspace:*",
+    "@module-federation/rsbuild-plugin": "2.9.3",
+    "@rsbuild/core": "2.3.2",
+    "@rsbuild/plugin-react": "2.1.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  }
+}
