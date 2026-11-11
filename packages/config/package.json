@@ -9,10 +9,12 @@
     "./tsconfig.bundler.json": "./tsconfig.bundler.json",
     "./tsconfig.node.json": "./tsconfig.node.json",
     "./eslint": "./eslint.config.js",
-    "./prettier": "./prettier.config.js"
+    "./prettier": "./prettier.config.js",
+    "./mf-shared": "./mf-shared.ts"
   },
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json"
   },
   "peerDependencies": {
     "eslint": "^10.0.0",
