@@ -1,0 +1,4 @@
+{
+  "extends": "@bulkhead/config/tsconfig.bundler.json",
+  "include": ["src", "rsbuild.config.ts"]
+}
