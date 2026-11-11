@@ -1,0 +1,4 @@
+{
+  "extends": "@bulkhead/config/tsconfig.node.json",
+  "include": ["src"]
+}
