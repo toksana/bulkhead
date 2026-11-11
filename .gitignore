@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+
+# Nx
+.nx/cache/
+.nx/workspace-data/
+
+# Test artifacts
+playwright-report/
+test-results/
+blob-report/
+
+# Local data
+*.sqlite
+*.sqlite-journal
+*.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Local working documents (added later)
+/CLAUDE.md
+/docs/ROADMAP.md
+/OT-Security-Platform-Project-Plan.png
