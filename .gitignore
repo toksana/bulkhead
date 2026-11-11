@@ -39,8 +39,3 @@ pnpm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 *.swp
-
-# Local working documents (added later)
-/CLAUDE.md
-/docs/ROADMAP.md
-/OT-Security-Platform-Project-Plan.png
