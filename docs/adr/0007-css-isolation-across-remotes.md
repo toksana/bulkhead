@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-11
-- Amended: 2026-11-12 (layer-aware at-rules, top-level ICSS, foreign layers, pure mode)
+- Amended: 2026-11-12 (layer-aware at-rules, top-level ICSS, foreign layers, pure mode, one layer policy)
 
 ## Context
 
@@ -55,9 +55,10 @@ CSS Modules use `pure` mode: every selector must contain a local class or id. La
   - `@import` in a CSS Module is a build error, because it cannot be moved into a layer block. Stylesheets are imported from JavaScript instead.
 - **Explicit global CSS.** The host's global stylesheets (reset, later tokens) are few and declare their layer by hand, where it is visible.
 - **A check on the build output, not the sources.** `bulkhead-css-check` runs as the `css-check` target after `build`, locally and in CI. It catches mistakes the plugin cannot see, such as a wrong path match or CSS from a third-party library.
+  - An app says only what it is: `bulkhead-css-check --dir dist --host` or `--remote <name>`. The allowed layers, the root-selector rule and the expected page order come from `packages/config/layers.ts`, which the build config also reads. A new remote cannot forget a rule, and a wrong name fails closed because its CSS lands in a layer the check does not allow.
   - Every style rule must sit in a layer the app owns: `ui` plus its own layer for remotes, and `reset`, `tokens`, `ui`, `host` for the host. The same applies to at-rules that take part in layering, such as `@font-face`, `@keyframes`, `@property`, `@counter-style` and `@page`: an unlayered one beats every layered one with the same name. Only grouping rules (`@media`, `@supports`, `@container`, …) and top-level statements are exempt, so an unknown at-rule fails the check.
   - Remotes must not contain `html`, `body` or `:root` selectors.
-  - The host's `index.html` must declare exactly `reset, tokens, ui, host, remotes` before any script or stylesheet.
+  - The host's `index.html` must declare exactly `LAYER_ORDER` (`reset, tokens, ui, host, remotes`) at the start of its first inline `<style>`, before any script or stylesheet link. HTML and CSS comments are ignored; icon, preconnect and other non-stylesheet links may come first. The statement stays hand-written in the template so it is visible there; the check keeps it in step with `LAYER_ORDER`.
 
 Each guard was checked against a deliberately broken build: a remote with `:global(body)`, a remote built with the plugin disabled, and a host template with `host` and `remotes` swapped all fail the check with the file and rule named.
 
