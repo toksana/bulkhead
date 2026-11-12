@@ -3,8 +3,9 @@ import type { AtRule, Node, Rule } from 'postcss';
 
 export interface CssViolation {
   readonly kind: 'unlayered' | 'foreign-layer' | 'root-selector';
-  readonly selector: string;
-  /** Full layer path of the rule, for example `remotes.telemetry`. */
+  /** What breaks the rule: a selector, or an at-rule such as `@font-face` or `@keyframes spin`. */
+  readonly subject: string;
+  /** Full layer path of the subject, for example `remotes.telemetry`. */
   readonly layer?: string;
 }
 
@@ -17,51 +18,101 @@ export interface CssCheckOptions {
 
 const ROOT_SELECTOR = /(^|[\s>+~(,])(html|body|:root)(?=$|[\s>+~.:#[,)])/;
 
+/** At-rules that only group or condition what is inside them; their contents are checked instead. */
+const GROUPING_AT_RULES: ReadonlySet<string> = new Set([
+  'layer',
+  'media',
+  'supports',
+  'container',
+  'scope',
+  'starting-style',
+  'document',
+]);
+
+/** Top-level statements that hold no declarations and do not take part in layering. */
+const STATEMENT_AT_RULES: ReadonlySet<string> = new Set(['charset', 'import', 'namespace']);
+
 const isAtRule = (node: Node): node is AtRule => node.type === 'atrule';
 
-const ancestors = (rule: Rule): Node[] => {
+const isRule = (node: Node): node is Rule => node.type === 'rule';
+
+const isGrouping = (node: AtRule): boolean => GROUPING_AT_RULES.has(node.name);
+
+/**
+ * Any other at-rule is checked, so an unknown one fails closed. Name-defining at-rules
+ * (`@font-face`, `@keyframes`, `@property`, `@counter-style`) and `@page` are layer-aware:
+ * an unlayered one beats every layered one.
+ */
+const isCheckedAtRule = (node: AtRule): boolean =>
+  !isGrouping(node) && !STATEMENT_AT_RULES.has(node.name);
+
+const ancestors = (node: Node): Node[] => {
   const chain: Node[] = [];
-  for (let node: Node | undefined = rule.parent; node; node = node.parent) chain.unshift(node);
+  for (let parent: Node | undefined = node.parent; parent; parent = parent.parent) {
+    chain.unshift(parent);
+  }
   return chain;
 };
 
-/** Joins enclosing `@layer` names from the outside in; `undefined` when the rule is unlayered. */
-const layerPath = (rule: Rule): string | undefined => {
-  const names = ancestors(rule)
+/**
+ * Only nodes wrapped in nothing but grouping at-rules are checked. This skips keyframe
+ * selectors (`from`, `50%`) and at-rules nested in a checked one (`@top-left` in `@page`).
+ */
+const isOutermost = (node: Node): boolean => ancestors(node).filter(isAtRule).every(isGrouping);
+
+/** Joins enclosing `@layer` names from the outside in; `undefined` when the node is unlayered. */
+const layerPath = (node: Node): string | undefined => {
+  const names = ancestors(node)
     .filter(isAtRule)
-    .filter((node) => node.name === 'layer')
-    .map((node) => node.params.trim());
+    .filter((parent) => parent.name === 'layer')
+    .map((parent) => parent.params.trim());
   return names.length > 0 ? names.join('.') : undefined;
 };
-
-/** Keyframe selectors (`from`, `50%`) are not style rules and do not take part in layering. */
-const isKeyframe = (rule: Rule): boolean =>
-  ancestors(rule)
-    .filter(isAtRule)
-    .some((node) => node.name.endsWith('keyframes'));
 
 const isAllowed = (layer: string, allowed: readonly string[]): boolean =>
   allowed.some((name) => layer === name || layer.startsWith(`${name}.`));
 
+const checkLayer = (
+  subject: string,
+  layer: string | undefined,
+  options: CssCheckOptions,
+): CssViolation[] => {
+  if (layer === undefined) return [{ kind: 'unlayered', subject }];
+  if (!isAllowed(layer, options.allowedLayers)) return [{ kind: 'foreign-layer', subject, layer }];
+  return [];
+};
+
 const checkRule = (rule: Rule, options: CssCheckOptions): CssViolation[] => {
   const layer = layerPath(rule);
-  const violations: CssViolation[] = [];
-  if (layer === undefined) {
-    violations.push({ kind: 'unlayered', selector: rule.selector });
-  } else if (!isAllowed(layer, options.allowedLayers)) {
-    violations.push({ kind: 'foreign-layer', selector: rule.selector, layer });
-  }
+  const violations = checkLayer(rule.selector, layer, options);
   if (options.forbidRootSelectors && rule.selectors.some((s) => ROOT_SELECTOR.test(s))) {
-    violations.push({ kind: 'root-selector', selector: rule.selector, ...(layer && { layer }) });
+    violations.push({ kind: 'root-selector', subject: rule.selector, ...(layer && { layer }) });
   }
   return violations;
 };
 
-/** Checks built CSS: every style rule sits in an allowed layer, and remotes stay off the document root. */
+const describeAtRule = (node: AtRule): string => {
+  const params = node.params.trim();
+  return params === '' ? `@${node.name}` : `@${node.name} ${params}`;
+};
+
+const checkNode = (node: Node, options: CssCheckOptions): CssViolation[] => {
+  if (!isOutermost(node)) return [];
+  if (isRule(node)) return checkRule(node, options);
+  if (isAtRule(node) && isCheckedAtRule(node)) {
+    return checkLayer(describeAtRule(node), layerPath(node), options);
+  }
+  return [];
+};
+
+/**
+ * Checks built CSS: every style rule and every layer-aware at-rule sits in an allowed layer,
+ * and remotes stay off the document root.
+ */
 export const findViolations = (css: string, options: CssCheckOptions): CssViolation[] => {
   const violations: CssViolation[] = [];
-  parse(css).walkRules((rule) => {
-    if (!isKeyframe(rule)) violations.push(...checkRule(rule, options));
+  parse(css).walk((node) => {
+    violations.push(...checkNode(node, options));
   });
   return violations;
 };

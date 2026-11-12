@@ -46,7 +46,7 @@ const listCssFiles = async (dir: string): Promise<string[]> => {
 };
 
 const describeViolation = (file: string, violation: CssViolation): string =>
-  `${file}: ${violation.kind} rule "${violation.selector}"${violation.layer === undefined ? '' : ` in layer "${violation.layer}"`}`;
+  `${file}: ${violation.kind} rule "${violation.subject}"${violation.layer === undefined ? '' : ` in layer "${violation.layer}"`}`;
 
 const checkCssFile = async (file: string, options: CssCheckOptions): Promise<string[]> => {
   const css = await readFile(file, 'utf8');
