@@ -90,10 +90,11 @@ describe('cssLayersPlugin', () => {
 
   it('does not wrap a file that already declares its layer', () => {
     // Arrange
-    const css = '@layer custom { .panel { display: grid; } }';
+    const layer = buildLayer();
+    const css = `@layer ${layer} { .panel { display: grid; } }`;
 
     // Act
-    const output = process(css, buildLayer());
+    const output = process(css, layer);
 
     // Assert
     expect(compact(output)).toBe(compact(css));
@@ -102,15 +103,48 @@ describe('cssLayersPlugin', () => {
   it('wraps only the unlayered part of a partly layered file', () => {
     // Arrange
     const layer = buildLayer();
-    const css = '@layer custom { .a { color: inherit; } } .b { display: grid; }';
+    const sublayer = `${layer}.${faker.word.noun()}`;
+    const css = `@layer ${sublayer} { .a { color: inherit; } } .b { display: grid; }`;
 
     // Act
     const output = process(css, layer);
 
     // Assert
     expect(compact(output)).toBe(
-      compact(`@layer custom { .a { color: inherit; } } @layer ${layer} { .b { display: grid; } }`),
+      compact(
+        `@layer ${sublayer} { .a { color: inherit; } } @layer ${layer} { .b { display: grid; } }`,
+      ),
     );
+  });
+
+  it('keeps a layer statement that names only sublayers of the file layer', () => {
+    // Arrange
+    const layer = buildLayer();
+    const css = `@layer ${layer}.base, ${layer}.state;`;
+
+    // Act
+    const output = process(css, layer);
+
+    // Assert
+    expect(compact(output)).toBe(compact(css));
+  });
+
+  it.each([
+    ['a block in a shared layer', (): string => '@layer ui { button { color: red; } }'],
+    ['a statement naming another layer', (): string => '@layer host;'],
+    ['a statement mixing own and foreign layers', (layer: string) => `@layer ${layer}.base, ui;`],
+    ['a layer that only shares a prefix', (layer: string) => `@layer ${layer}x { .a { gap: 0; } }`],
+    ['an anonymous layer', (): string => '@layer { .a { gap: 0; } }'],
+  ])('rejects %s', (_case, buildCss) => {
+    // Arrange
+    const layer = buildLayer();
+    const css = buildCss(layer);
+
+    // Act
+    const run = (): string => process(css, layer);
+
+    // Assert
+    expect(run).toThrow(/outside this file's layer/);
   });
 
   it('rejects @import with a message that says what to do instead', () => {
