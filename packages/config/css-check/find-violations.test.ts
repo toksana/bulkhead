@@ -33,7 +33,7 @@ describe('findViolations', () => {
     const violations = findViolations(css, remoteOptions(appLayer));
 
     // Assert
-    expect(violations).toEqual([{ kind: 'unlayered', selector: '.leak' }]);
+    expect(violations).toEqual([{ kind: 'unlayered', subject: '.leak' }]);
   });
 
   it('reports a rule inside an unlayered media query as unlayered', () => {
@@ -45,7 +45,7 @@ describe('findViolations', () => {
     const violations = findViolations(css, remoteOptions(appLayer));
 
     // Assert
-    expect(violations).toEqual([{ kind: 'unlayered', selector: '.leak' }]);
+    expect(violations).toEqual([{ kind: 'unlayered', subject: '.leak' }]);
   });
 
   it('joins nested layer blocks into one path', () => {
@@ -70,7 +70,7 @@ describe('findViolations', () => {
 
     // Assert
     expect(violations).toEqual([
-      { kind: 'foreign-layer', selector: '.panel', layer: 'remotes.other' },
+      { kind: 'foreign-layer', subject: '.panel', layer: 'remotes.other' },
     ]);
   });
 
@@ -82,13 +82,67 @@ describe('findViolations', () => {
     const violations = findViolations(css, { allowedLayers: ['ui'], forbidRootSelectors: false });
 
     // Assert
-    expect(violations).toEqual([{ kind: 'foreign-layer', selector: '.button', layer: 'uikit' }]);
+    expect(violations).toEqual([{ kind: 'foreign-layer', subject: '.button', layer: 'uikit' }]);
   });
 
-  it('ignores keyframe selectors', () => {
+  it('does not check keyframe selectors on their own', () => {
     // Arrange
     const appLayer = buildAppLayer();
-    const css = `@keyframes pulse{from{opacity:0}to{opacity:1}}@layer ${appLayer}{.panel{animation:pulse 1s}}`;
+    const css = `@layer ${appLayer}{@keyframes pulse{from{opacity:0}50%{opacity:.5}to{opacity:1}}.panel{animation:pulse 1s}}`;
+
+    // Act
+    const violations = findViolations(css, remoteOptions(appLayer));
+
+    // Assert
+    expect(violations).toEqual([]);
+  });
+
+  it.each([
+    ['@font-face{font-family:Inter;src:url(inter.woff2)}', '@font-face'],
+    ['@keyframes spin{to{rotate:1turn}}', '@keyframes spin'],
+    ["@property --x{syntax:'<length>';inherits:false;initial-value:0px}", '@property --x'],
+    ['@counter-style thumbs{system:cyclic;symbols:"👍"}', '@counter-style thumbs'],
+    ['@page{margin:1cm;@top-left{content:"x"}}', '@page'],
+    ['@media print{@font-face{font-family:Print;src:url(p.woff2)}}', '@font-face'],
+  ])('reports unlayered %s as %s', (css, subject) => {
+    // Arrange
+    const appLayer = buildAppLayer();
+
+    // Act
+    const violations = findViolations(css, remoteOptions(appLayer));
+
+    // Assert
+    expect(violations).toEqual([{ kind: 'unlayered', subject }]);
+  });
+
+  it('accepts layer-aware at-rules inside an allowed layer', () => {
+    // Arrange
+    const appLayer = buildAppLayer();
+    const css = `@layer ${appLayer}{@font-face{font-family:Inter;src:url(inter.woff2)}@keyframes spin{to{rotate:1turn}}@property --x{syntax:'<length>';inherits:false;initial-value:0px}}`;
+
+    // Act
+    const violations = findViolations(css, remoteOptions(appLayer));
+
+    // Assert
+    expect(violations).toEqual([]);
+  });
+
+  it('reports a layer-aware at-rule in a layer the app does not own', () => {
+    // Arrange
+    const appLayer = buildAppLayer();
+    const css = '@layer tokens{@font-face{font-family:Inter;src:url(inter.woff2)}}';
+
+    // Act
+    const violations = findViolations(css, remoteOptions(appLayer));
+
+    // Assert
+    expect(violations).toEqual([{ kind: 'foreign-layer', subject: '@font-face', layer: 'tokens' }]);
+  });
+
+  it('does not report grouping at-rules or top-level statements themselves', () => {
+    // Arrange
+    const appLayer = buildAppLayer();
+    const css = `@charset "utf-8";@namespace svg url(http://www.w3.org/2000/svg);@layer ${appLayer};@layer ${appLayer}{@media (width>40rem){@supports (display:grid){@container (width>1px){.panel{gap:1rem}}}}}`;
 
     // Act
     const violations = findViolations(css, remoteOptions(appLayer));
@@ -108,7 +162,7 @@ describe('findViolations', () => {
       const violations = findViolations(css, remoteOptions(appLayer));
 
       // Assert
-      expect(violations).toEqual([{ kind: 'root-selector', selector, layer: appLayer }]);
+      expect(violations).toEqual([{ kind: 'root-selector', subject: selector, layer: appLayer }]);
     },
   );
 
