@@ -1,25 +1,7 @@
-import { pluginModuleFederation } from '@module-federation/rsbuild-plugin';
 import { defineConfig } from '@rsbuild/core';
-import { pluginReact } from '@rsbuild/plugin-react';
 
-import { sharedSingletons } from '@bulkhead/config/mf-shared';
+import { createRemoteConfig } from '@bulkhead/config/rsbuild';
 
-// Assets are addressed relative to the page origin, so the remote works behind the edge
-// (see the single-origin proxy) and its workers resolve to the same origin as the host.
-const assetPrefix = '/remotes/telemetry/';
-
-export default defineConfig({
-  // Only the host origin may fetch the remote directly; everything else goes through its proxy.
-  server: { port: 3001, cors: { origin: 'http://localhost:3000' } },
-  dev: { assetPrefix },
-  output: { assetPrefix },
-  plugins: [
-    pluginReact(),
-    pluginModuleFederation({
-      name: 'telemetry',
-      exposes: { './App': './src/App.tsx' },
-      shared: sharedSingletons,
-      dts: false,
-    }),
-  ],
-});
+export default defineConfig(
+  createRemoteConfig({ name: 'telemetry', port: 3001, exposes: { './App': './src/App.tsx' } }),
+);
