@@ -12,6 +12,9 @@
     "./prettier": "./prettier.config.js",
     "./mf-shared": "./mf-shared.ts"
   },
+  "bin": {
+    "bulkhead-css-check": "./css-check/cli.ts"
+  },
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",
