@@ -47,6 +47,47 @@ describe('cssLayersPlugin', () => {
     );
   });
 
+  it.each([
+    [':export', ':export { gap: 8px; }'],
+    [':import', ':import("./tokens.module.css") { tokenGap: gap; }'],
+    ['@namespace', '@namespace svg url(http://www.w3.org/2000/svg);'],
+  ])('keeps %s at the top level and wraps the rest', (_name, topLevel) => {
+    // Arrange
+    const layer = buildLayer();
+    const css = `${topLevel} .panel { display: grid; }`;
+
+    // Act
+    const output = process(css, layer);
+
+    // Assert
+    expect(compact(output)).toBe(
+      compact(`${topLevel} @layer ${layer} { .panel { display: grid; } }`),
+    );
+  });
+
+  it('does not add an empty layer block to a file with only ICSS exports', () => {
+    // Arrange
+    const css = ':export { gap: 8px; }';
+
+    // Act
+    const output = process(css, buildLayer());
+
+    // Assert
+    expect(compact(output)).toBe(compact(css));
+  });
+
+  it('wraps a rule that only mentions :export inside a larger selector', () => {
+    // Arrange
+    const layer = buildLayer();
+    const css = '.panel:export-like { display: grid; }';
+
+    // Act
+    const output = process(css, layer);
+
+    // Assert
+    expect(compact(output)).toBe(compact(`@layer ${layer} { ${css} }`));
+  });
+
   it('does not wrap a file that already declares its layer', () => {
     // Arrange
     const css = '@layer custom { .panel { display: grid; } }';
