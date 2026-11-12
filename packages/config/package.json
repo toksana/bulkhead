@@ -21,7 +21,12 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
+  "dependencies": {
+    "@module-federation/rsbuild-plugin": "2.9.3",
+    "@rsbuild/plugin-react": "2.1.1"
+  },
   "peerDependencies": {
+    "@rsbuild/core": "^2.3.2",
     "eslint": "^10.0.0",
     "prettier": "^3.0.0",
     "typescript": "~6.0.3",
@@ -29,9 +34,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "10.6.0",
-    "@module-federation/rsbuild-plugin": "2.9.3",
     "@rsbuild/core": "2.3.2",
-    "@rsbuild/plugin-react": "2.1.1",
     "@types/node": "26.6.6",
     "postcss": "8.5.32",
     "vitest": "5.1.0"

@@ -39,15 +39,9 @@ importers:
       '@bulkhead/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@module-federation/rsbuild-plugin':
-        specifier: 2.9.3
-        version: 2.9.3(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))(typescript@6.0.3)
       '@rsbuild/core':
         specifier: 2.3.2
         version: 2.3.2(@module-federation/runtime-tools@2.9.3)
-      '@rsbuild/plugin-react':
-        specifier: 2.1.1
-        version: 2.1.1(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
@@ -67,15 +61,9 @@ importers:
       '@bulkhead/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@module-federation/rsbuild-plugin':
-        specifier: 2.9.3
-        version: 2.9.3(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))(typescript@6.0.3)
       '@rsbuild/core':
         specifier: 2.3.2
         version: 2.3.2(@module-federation/runtime-tools@2.9.3)
-      '@rsbuild/plugin-react':
-        specifier: 2.1.1
-        version: 2.1.1(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
@@ -98,15 +86,9 @@ importers:
       '@faker-js/faker':
         specifier: 10.6.0
         version: 10.6.0
-      '@module-federation/rsbuild-plugin':
-        specifier: 2.9.3
-        version: 2.9.3(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))(typescript@6.0.3)
       '@rsbuild/core':
         specifier: 2.3.2
         version: 2.3.2(@module-federation/runtime-tools@2.9.3)
-      '@rsbuild/plugin-react':
-        specifier: 2.1.1
-        version: 2.1.1(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
@@ -119,6 +101,12 @@ importers:
 
   packages/config:
     dependencies:
+      '@module-federation/rsbuild-plugin':
+        specifier: 2.9.3
+        version: 2.9.3(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))(typescript@6.0.3)
+      '@rsbuild/plugin-react':
+        specifier: 2.1.1
+        version: 2.1.1(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))
       eslint:
         specifier: ^10.0.0
         version: 10.14.0(jiti@2.4.2)(supports-color@7.2.0)
@@ -135,15 +123,9 @@ importers:
       '@faker-js/faker':
         specifier: 10.6.0
         version: 10.6.0
-      '@module-federation/rsbuild-plugin':
-        specifier: 2.9.3
-        version: 2.9.3(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))(typescript@6.0.3)
       '@rsbuild/core':
         specifier: 2.3.2
         version: 2.3.2(@module-federation/runtime-tools@2.9.3)
-      '@rsbuild/plugin-react':
-        specifier: 2.1.1
-        version: 2.1.1(@rsbuild/core@2.3.2(@module-federation/runtime-tools@2.9.3))(@rspack/core@2.3.2(@module-federation/runtime-tools@2.9.3)(@swc/helpers@0.5.24))
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
