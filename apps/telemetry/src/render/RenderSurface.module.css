@@ -1,0 +1,9 @@
+.surface {
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* Live values: fixed-width digits so the counters do not jitter. */
+.status {
+  font-variant-numeric: tabular-nums;
+}
