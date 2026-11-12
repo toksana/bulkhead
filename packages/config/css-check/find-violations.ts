@@ -46,24 +46,23 @@ const isGrouping = (node: AtRule): boolean => GROUPING_AT_RULES.has(node.name);
 const isCheckedAtRule = (node: AtRule): boolean =>
   !isGrouping(node) && !STATEMENT_AT_RULES.has(node.name);
 
-const ancestors = (node: Node): Node[] => {
-  const chain: Node[] = [];
-  for (let parent: Node | undefined = node.parent; parent; parent = parent.parent) {
-    chain.unshift(parent);
-  }
-  return chain;
-};
+/** Enclosing nodes from the outside in. Recursion depth is the nesting depth, a handful at most. */
+const ancestors = (node: Node): Node[] =>
+  node.parent ? [...ancestors(node.parent), node.parent] : [];
+
+/** Rules and checked at-rules; declarations, comments and grouping at-rules are not subjects. */
+const isSubject = (node: Node): node is Rule | AtRule =>
+  isRule(node) || (isAtRule(node) && isCheckedAtRule(node));
 
 /**
  * Only nodes wrapped in nothing but grouping at-rules are checked. This skips keyframe
  * selectors (`from`, `50%`) and at-rules nested in a checked one (`@top-left` in `@page`).
  */
-const isOutermost = (node: Node): boolean => ancestors(node).filter(isAtRule).every(isGrouping);
+const isOutermost = (enclosing: readonly AtRule[]): boolean => enclosing.every(isGrouping);
 
 /** Joins enclosing `@layer` names from the outside in; `undefined` when the node is unlayered. */
-const layerPath = (node: Node): string | undefined => {
-  const names = ancestors(node)
-    .filter(isAtRule)
+const layerPath = (enclosing: readonly AtRule[]): string | undefined => {
+  const names = enclosing
     .filter((parent) => parent.name === 'layer')
     .map((parent) => parent.params.trim());
   return names.length > 0 ? names.join('.') : undefined;
@@ -82,8 +81,11 @@ const checkLayer = (
   return [];
 };
 
-const checkRule = (rule: Rule, options: CssCheckOptions): CssViolation[] => {
-  const layer = layerPath(rule);
+const checkRule = (
+  rule: Rule,
+  layer: string | undefined,
+  options: CssCheckOptions,
+): CssViolation[] => {
   const violations = checkLayer(rule.selector, layer, options);
   if (options.forbidRootSelectors && rule.selectors.some((s) => ROOT_SELECTOR.test(s))) {
     violations.push({ kind: 'root-selector', subject: rule.selector, ...(layer && { layer }) });
@@ -97,12 +99,13 @@ const describeAtRule = (node: AtRule): string => {
 };
 
 const checkNode = (node: Node, options: CssCheckOptions): CssViolation[] => {
-  if (!isOutermost(node)) return [];
-  if (isRule(node)) return checkRule(node, options);
-  if (isAtRule(node) && isCheckedAtRule(node)) {
-    return checkLayer(describeAtRule(node), layerPath(node), options);
-  }
-  return [];
+  if (!isSubject(node)) return [];
+  const enclosing = ancestors(node).filter(isAtRule);
+  if (!isOutermost(enclosing)) return [];
+  const layer = layerPath(enclosing);
+  return isRule(node)
+    ? checkRule(node, layer, options)
+    : checkLayer(describeAtRule(node), layer, options);
 };
 
 /**
