@@ -6,6 +6,9 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    // CSS Modules are typed as an index signature, so `styles.panel` must stay allowed.
+    // noUncheckedIndexedAccess still types each class as `string | undefined`.
+    "noPropertyAccessFromIndexSignature": false
   }
 }
