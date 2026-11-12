@@ -1,4 +1,4 @@
-import type { ChildNode, Plugin } from 'postcss';
+import type { AtRule, ChildNode, Plugin, Root } from 'postcss';
 
 import type { LayerResolver } from './layer-resolver.ts';
 
@@ -15,12 +15,52 @@ const mustStayTopLevel = (node: ChildNode): boolean =>
   (node.type === 'atrule' && TOP_LEVEL_AT_RULES.has(node.name)) ||
   (node.type === 'rule' && ICSS_SELECTOR.test(node.selector.trim()));
 
+const isAtRule = (node: ChildNode, name: string): node is AtRule =>
+  node.type === 'atrule' && node.name === name;
+
+const rejectImports = (root: Root): void => {
+  const imported = root.nodes.find((node) => isAtRule(node, 'import'));
+  if (imported) {
+    throw imported.error(
+      '@import is not allowed in CSS Modules; import the stylesheet from JavaScript instead',
+    );
+  }
+};
+
+const isOwnLayer = (name: string, layer: string): boolean =>
+  name === layer || name.startsWith(`${layer}.`);
+
+/**
+ * A hand-written top-level `@layer` stays where it is, so it may only name the file's own layer or
+ * a sublayer of it. Otherwise a remote could write into `ui` or `host`, and the built-CSS check
+ * could not tell it apart from real shared styles. An anonymous top-level layer is rejected too:
+ * it would sit after every named layer and beat them all.
+ */
+const rejectForeignLayers = (root: Root, layer: string): void => {
+  const foreign = root.nodes
+    .filter((node) => isAtRule(node, 'layer'))
+    .find((node) =>
+      node.params
+        .split(',')
+        .map((name) => name.trim())
+        .some((name) => !isOwnLayer(name, layer)),
+    );
+  if (foreign) {
+    const params = foreign.params.trim();
+    const label = params === '' ? '(anonymous)' : params;
+    throw foreign.error(
+      `@layer ${label} is outside this file's layer; use "${layer}" or "${layer}.<name>"`,
+    );
+  }
+};
+
 /**
  * Wraps the unlayered part of a stylesheet in `@layer <name> { ... }`, where the name comes from
  * the resolver. `@charset`, `@namespace`, ICSS `:export`/`:import` and `@layer` statements or
  * blocks stay where they are, so they keep working and a file that already declares its layer is
- * not wrapped twice. `@import` is rejected: it cannot be moved
- * into a layer block, and CSS Modules should be imported from JavaScript instead.
+ * not wrapped twice. A top-level `@layer` must name the file's own layer or a sublayer of it.
+ * `@import` is rejected: it cannot be moved into a layer block, and CSS Modules should be imported
+ * from JavaScript instead.
  */
 export const cssLayersPlugin = (resolveLayer: LayerResolver): Plugin => ({
   postcssPlugin: 'bulkhead-css-layers',
@@ -28,12 +68,8 @@ export const cssLayersPlugin = (resolveLayer: LayerResolver): Plugin => ({
     const layer = resolveLayer(root.source?.input.file);
     if (layer === undefined) return;
 
-    const imported = root.nodes.find((node) => node.type === 'atrule' && node.name === 'import');
-    if (imported) {
-      throw imported.error(
-        '@import is not allowed in CSS Modules; import the stylesheet from JavaScript instead',
-      );
-    }
+    rejectImports(root);
+    rejectForeignLayers(root, layer);
 
     const unlayered = root.nodes.filter((node) => !mustStayTopLevel(node));
     if (unlayered.length === 0) return;
