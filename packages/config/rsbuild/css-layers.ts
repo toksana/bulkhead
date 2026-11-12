@@ -61,6 +61,10 @@ const rejectForeignLayers = (root: Root, layer: string): void => {
  * not wrapped twice. A top-level `@layer` must name the file's own layer or a sublayer of it.
  * `@import` is rejected: it cannot be moved into a layer block, and CSS Modules should be imported
  * from JavaScript instead.
+ *
+ * The wrapping block is appended after any `@layer` nodes the file already has. Moving it does not
+ * change the cascade: those nodes can only be the file's own layer or its sublayers, and rules
+ * directly in a layer beat its sublayers' rules whatever the source order.
  */
 export const cssLayersPlugin = (resolveLayer: LayerResolver): Plugin => ({
   postcssPlugin: 'bulkhead-css-layers',
@@ -72,7 +76,7 @@ export const cssLayersPlugin = (resolveLayer: LayerResolver): Plugin => ({
     rejectForeignLayers(root, layer);
 
     const unlayered = root.nodes.filter((node) => !mustStayTopLevel(node));
-    if (unlayered.length === 0) return;
+    if (unlayered.every((node) => node.type === 'comment')) return;
 
     const block = new AtRule({ name: 'layer', params: layer });
     block.append(unlayered);

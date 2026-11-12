@@ -117,6 +117,18 @@ describe('cssLayersPlugin', () => {
     );
   });
 
+  it('does not add an empty layer block when only comments are left unlayered', () => {
+    // Arrange
+    const layer = buildLayer();
+    const css = `/* base styles */ @layer ${layer}.base { .a { gap: 0; } } /* end */`;
+
+    // Act
+    const output = process(css, layer);
+
+    // Assert
+    expect(compact(output)).toBe(compact(css));
+  });
+
   it('keeps a layer statement that names only sublayers of the file layer', () => {
     // Arrange
     const layer = buildLayer();
