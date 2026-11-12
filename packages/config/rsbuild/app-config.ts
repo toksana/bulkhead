@@ -18,9 +18,14 @@ type CssModulesConfig = NonNullable<NonNullable<RsbuildConfig['output']>['cssMod
 export const remoteLayer = (name: string): string => `remotes.${name}`;
 export const remoteAssetPrefix = (name: string): string => `/remotes/${name}/`;
 
-/** Prefixes class names with the app name; independently built apps cannot collide. */
+/**
+ * Prefixes class names with the app name, so independently built apps cannot collide. `pure`
+ * makes every selector contain a local class or id: a bare `button {}` or `* {}` in a module
+ * would style the whole page, which cascade layers alone do not prevent.
+ */
 const cssModules = (name: string): CssModulesConfig => ({
   localIdentName: `${name}__[local]--[hash:base64:5]`,
+  mode: 'pure',
 });
 
 export interface RemoteOptions {
