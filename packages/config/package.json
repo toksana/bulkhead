@@ -10,7 +10,8 @@
     "./tsconfig.node.json": "./tsconfig.node.json",
     "./eslint": "./eslint.config.js",
     "./prettier": "./prettier.config.js",
-    "./mf-shared": "./mf-shared.ts"
+    "./mf-shared": "./mf-shared.ts",
+    "./rsbuild": "./rsbuild/index.ts"
   },
   "bin": {
     "bulkhead-css-check": "./css-check/cli.ts"
@@ -28,7 +29,9 @@
   },
   "devDependencies": {
     "@faker-js/faker": "10.6.0",
+    "@module-federation/rsbuild-plugin": "2.9.3",
     "@rsbuild/core": "2.3.2",
+    "@rsbuild/plugin-react": "2.1.1",
     "@types/node": "26.6.6",
     "postcss": "8.5.32",
     "vitest": "5.1.0"
