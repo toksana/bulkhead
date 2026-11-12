@@ -8,14 +8,14 @@ import { HOST_LAYER, remoteLayer } from '../layers.ts';
 import { sharedSingletons } from '../mf-shared.ts';
 import { pluginCssLayers } from './plugin-css-layers.ts';
 
-export const HOST_PORT = 3000;
+const HOST_PORT = 3000;
 
 const HOST_ORIGIN = `http://localhost:${String(HOST_PORT)}`;
 const UI_ROOT = resolve(import.meta.dirname, '../../ui');
 
 type CssModulesConfig = NonNullable<NonNullable<RsbuildConfig['output']>['cssModules']>;
 
-export const remoteAssetPrefix = (name: string): string => `/remotes/${name}/`;
+const remoteAssetPrefix = (name: string): string => `/remotes/${name}/`;
 
 /**
  * Prefixes class names with the app name, so independently built apps cannot collide. `pure`
