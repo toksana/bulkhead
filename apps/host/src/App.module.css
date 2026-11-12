@@ -1,0 +1,10 @@
+.shell {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+/* The host styles the slot a remote renders into, never the remote's content. */
+.slot {
+  min-width: 0;
+}

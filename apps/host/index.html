@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bulkhead</title>
+    <!--
+      The cascade layer order for the whole page (ADR 0007). It must come before any script or
+      stylesheet: CSS chunks load asynchronously, and a layer's first appearance fixes its position.
+    -->
+    <style>
+      @layer reset, tokens, ui, host, remotes;
+    </style>
   </head>
   <body>
     <div id="root"></div>
