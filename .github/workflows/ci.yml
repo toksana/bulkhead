@@ -39,5 +39,5 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-      - name: Lint, typecheck, test, build (affected)
-        run: pnpm nx affected -t lint typecheck test build --output-style=static
+      - name: Lint, typecheck, test, build, CSS layer check (affected)
+        run: pnpm nx affected -t lint typecheck test build css-check --output-style=static
