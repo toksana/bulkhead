@@ -2,14 +2,24 @@ import type { ChildNode, Plugin } from 'postcss';
 
 import type { LayerResolver } from './layer-resolver.ts';
 
-/** At-rules that must stay at the top level of a stylesheet. */
-const isTopLevelOnly = (node: ChildNode): boolean =>
-  node.type === 'atrule' && (node.name === 'charset' || node.name === 'layer');
+/**
+ * At-rules that stop working inside a layer block: `@charset` and `@namespace` are only valid at
+ * the top level, and `@layer` statements or blocks already say where they belong.
+ */
+const TOP_LEVEL_AT_RULES: ReadonlySet<string> = new Set(['charset', 'namespace', 'layer']);
+
+/** ICSS rules: css-loader reads `:export` and `:import(...)` only from the top level. */
+const ICSS_SELECTOR = /^:(export|import\()/;
+
+const mustStayTopLevel = (node: ChildNode): boolean =>
+  (node.type === 'atrule' && TOP_LEVEL_AT_RULES.has(node.name)) ||
+  (node.type === 'rule' && ICSS_SELECTOR.test(node.selector.trim()));
 
 /**
  * Wraps the unlayered part of a stylesheet in `@layer <name> { ... }`, where the name comes from
- * the resolver. `@charset` and `@layer` statements or blocks stay where they are, so a file that
- * already declares its layer is not wrapped twice. `@import` is rejected: it cannot be moved
+ * the resolver. `@charset`, `@namespace`, ICSS `:export`/`:import` and `@layer` statements or
+ * blocks stay where they are, so they keep working and a file that already declares its layer is
+ * not wrapped twice. `@import` is rejected: it cannot be moved
  * into a layer block, and CSS Modules should be imported from JavaScript instead.
  */
 export const cssLayersPlugin = (resolveLayer: LayerResolver): Plugin => ({
@@ -25,7 +35,7 @@ export const cssLayersPlugin = (resolveLayer: LayerResolver): Plugin => ({
       );
     }
 
-    const unlayered = root.nodes.filter((node) => !isTopLevelOnly(node));
+    const unlayered = root.nodes.filter((node) => !mustStayTopLevel(node));
     if (unlayered.length === 0) return;
 
     const block = new AtRule({ name: 'layer', params: layer });
