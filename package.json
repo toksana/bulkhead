@@ -13,7 +13,8 @@
     "typecheck": "nx run-many -t typecheck",
     "test": "nx run-many -t test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "css-check": "nx run-many -t css-check"
   },
   "devDependencies": {
     "@bulkhead/config": "workspace:*",
