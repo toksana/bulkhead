@@ -3,12 +3,13 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 
+import { layerPolicy } from '../layers.ts';
+import type { AppTarget } from '../layers.ts';
 import { findViolations } from './find-violations.ts';
 import type { CssCheckOptions, CssViolation } from './find-violations.ts';
 import { checkLayerOrder } from './layer-order.ts';
 
-const USAGE =
-  'Usage: bulkhead-css-check --dir <build dir> --allow <layer>[,<layer>...] [--forbid-root-selectors] [--layer-order <layer>[,<layer>...]]';
+const USAGE = 'Usage: bulkhead-css-check --dir <build dir> (--host | --remote <name>)';
 
 interface CliOptions {
   readonly dir: string;
@@ -17,27 +18,23 @@ interface CliOptions {
   readonly layerOrder: readonly string[] | undefined;
 }
 
-const splitList = (value: string): string[] => value.split(',').map((item) => item.trim());
+/** Exactly one of `--host` and `--remote <name>`; the layer policy follows from it. */
+const readTarget = (host: boolean, remote: string | undefined): AppTarget => {
+  if (host === (remote !== undefined)) throw new Error(USAGE);
+  return remote === undefined ? { kind: 'host' } : { kind: 'remote', name: remote };
+};
 
 const readOptions = (): CliOptions => {
   const { values } = parseArgs({
     options: {
       dir: { type: 'string' },
-      allow: { type: 'string' },
-      'forbid-root-selectors': { type: 'boolean', default: false },
-      'layer-order': { type: 'string' },
+      host: { type: 'boolean', default: false },
+      remote: { type: 'string' },
     },
   });
-  if (values.dir === undefined || values.allow === undefined) throw new Error(USAGE);
-  const order = values['layer-order'];
-  return {
-    dir: values.dir,
-    check: {
-      allowedLayers: splitList(values.allow),
-      forbidRootSelectors: values['forbid-root-selectors'],
-    },
-    layerOrder: order === undefined ? undefined : splitList(order),
-  };
+  if (values.dir === undefined) throw new Error(USAGE);
+  const { layerOrder, ...check } = layerPolicy(readTarget(values.host, values.remote));
+  return { dir: values.dir, check, layerOrder };
 };
 
 const listCssFiles = async (dir: string): Promise<string[]> => {

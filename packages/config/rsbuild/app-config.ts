@@ -4,18 +4,17 @@ import { pluginModuleFederation } from '@module-federation/rsbuild-plugin';
 import type { RsbuildConfig } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 
+import { HOST_LAYER, remoteLayer } from '../layers.ts';
 import { sharedSingletons } from '../mf-shared.ts';
 import { pluginCssLayers } from './plugin-css-layers.ts';
 
 export const HOST_PORT = 3000;
-export const HOST_LAYER = 'host';
 
 const HOST_ORIGIN = `http://localhost:${String(HOST_PORT)}`;
 const UI_ROOT = resolve(import.meta.dirname, '../../ui');
 
 type CssModulesConfig = NonNullable<NonNullable<RsbuildConfig['output']>['cssModules']>;
 
-export const remoteLayer = (name: string): string => `remotes.${name}`;
 export const remoteAssetPrefix = (name: string): string => `/remotes/${name}/`;
 
 /**

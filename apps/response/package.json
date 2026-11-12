@@ -8,7 +8,7 @@
     "build": "rsbuild build",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",
-    "css-check": "bulkhead-css-check --dir dist --allow ui,remotes.response --forbid-root-selectors"
+    "css-check": "bulkhead-css-check --dir dist --remote response"
   },
   "dependencies": {
     "react": "19.3.1",

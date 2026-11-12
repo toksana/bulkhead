@@ -3,7 +3,8 @@ import { join } from 'node:path';
 import { faker } from '@faker-js/faker';
 import { describe, expect, it } from 'vitest';
 
-import { UI_LAYER, createLayerResolver } from './layer-resolver.ts';
+import { UI_LAYER } from '../layers.ts';
+import { createLayerResolver } from './layer-resolver.ts';
 
 const buildRules = (): { appRoot: string; uiRoot: string; appLayer: string } => {
   const workspace = join('/', faker.system.directoryPath().slice(1), 'workspace');

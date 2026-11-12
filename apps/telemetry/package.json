@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "css-check": "bulkhead-css-check --dir dist --allow ui,remotes.telemetry --forbid-root-selectors"
+    "css-check": "bulkhead-css-check --dir dist --remote telemetry"
   },
   "dependencies": {
     "react": "19.3.1",
