@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 
+import styles from './RenderSurface.module.css';
 import { useRenderWorker } from './useRenderWorker.ts';
 import type { RenderWorkerStatus } from './useRenderWorker.ts';
 
@@ -18,9 +19,9 @@ export function RenderSurface(): ReactElement {
   const { containerRef, status } = useRenderWorker();
 
   return (
-    <div>
+    <div className={styles.surface}>
       <div ref={containerRef} />
-      <output aria-live="off" data-state={status.state}>
+      <output className={styles.status} aria-live="off" data-state={status.state}>
         {describe(status)}
       </output>
     </div>
