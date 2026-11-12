@@ -1,5 +1,7 @@
 import { isAbsolute, relative } from 'node:path';
 
+import { UI_LAYER } from '../layers.ts';
+
 /** Returns the cascade layer a stylesheet belongs to, or `undefined` to leave it untouched. */
 export type LayerResolver = (file: string | undefined) => string | undefined;
 
@@ -10,8 +12,6 @@ export interface LayerRules {
   /** Absolute path of the shared UI package; its CSS Modules always go into `ui`. */
   readonly uiRoot: string;
 }
-
-export const UI_LAYER = 'ui';
 
 const CSS_MODULE_SUFFIX = '.module.css';
 

@@ -8,7 +8,7 @@
     "build": "rsbuild build",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",
-    "css-check": "bulkhead-css-check --dir dist --allow reset,tokens,ui,host --layer-order reset,tokens,ui,host,remotes"
+    "css-check": "bulkhead-css-check --dir dist --host"
   },
   "dependencies": {
     "react": "19.3.1",
